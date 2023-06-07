@@ -6,8 +6,8 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 class DataPoint {
   final int time;
   final int value;
-
-  DataPoint(this.time, this.value);
+  final int yValue;
+  DataPoint(this.time, this.value, this.yValue);
 }
 
 class LiveHistogramChart extends StatefulWidget {
@@ -24,7 +24,7 @@ class _LiveHistogramChartState extends State<LiveHistogramChart> {
   @override
   void initState() {
     super.initState();
-    timer = Timer.periodic(Duration(seconds: 1), (Timer t) => updateData());
+    timer = Timer.periodic(Duration(seconds: 2), (Timer t) => updateData());
   }
 
   @override
@@ -32,16 +32,23 @@ class _LiveHistogramChartState extends State<LiveHistogramChart> {
     timer?.cancel();
     super.dispose();
   }
-int newwvalue=1;
+
+  int newwvalue = 1;
+  int yValue = 1;
   void updateData() {
     // Generate random data
     final Random random = Random();
     final int currentTime = DateTime.now().millisecondsSinceEpoch;
-   // final int newValue = random.nextInt(100);
+    // final int newValue = random.nextInt(100);
 
     setState(() {
+      // if (newwvalue % 2 == 0) {
+      //   newwvalue = newwvalue + 5;
+      // } else {
+      // }
       newwvalue++;
-      data.add(DataPoint(currentTime, newwvalue));
+      yValue = yValue + 2;
+      data.add(DataPoint(currentTime, newwvalue, yValue));
 
       // Remove data points older than 7 minutes
       final int threshold = currentTime - (7 * 60 * 1000);
@@ -63,15 +70,41 @@ int newwvalue=1;
 
   List<ChartSeries<DataPoint, int>> _createSeries() {
     return [
-      ColumnSeries<DataPoint, int>(
-          dataSource: filteredData,
-          xValueMapper: (DataPoint dp, _) => dp.time,
-          yValueMapper: (DataPoint dp, _) => dp.value,
-          name: 'Histogram',
-          
-          color: Colors.blue,
-          width: 0.9,
-          spacing: 0),
+      //  StepLineSeries<DataPoint, int>(
+      //   dataSource: [
+      //     DataPoint(DateTime.now().subtract(Duration(minutes: selectedInterval)).microsecondsSinceEpoch, 30),
+      //     DataPoint(DateTime.now().millisecondsSinceEpoch, 30)],
+      //   xValueMapper: (DataPoint dp, _) => dp.time,
+      //   yValueMapper: (DataPoint dp, _) => dp.value,
+      //   name: 'g',
+      //   animationDelay: 0.0,
+      //   animationDuration: 0.0,
+      //   color: Colors.red,
+      //   width: 2,
+
+      // ),
+      StepAreaSeries<DataPoint, int>(
+        dataSource: filteredData,
+        xValueMapper: (DataPoint dp, _) => dp.yValue,
+        yValueMapper: (DataPoint dp, _) => dp.value,
+        name: 'Histogram',
+        animationDelay: 0.0,
+        xAxisName: 'Value',
+        yAxisName: 'Time',
+        animationDuration: 0.0,
+        color: Colors.blue,
+        //  trendlines: [
+        //   Trendline(
+        //      color: Colors.red,
+        //  isVisible: true,
+        //  name: '',
+        //   animationDuration: 0,
+
+        //   intercept: 10,
+
+        //   ),
+        //  ],
+      ),
     ];
   }
 
@@ -119,10 +152,55 @@ int newwvalue=1;
             height: 250,
             child: Padding(
               padding: EdgeInsets.all(8.0),
-              child: SfCartesianChart(
-                series: _createSeries(),
-                primaryXAxis: NumericAxis(),
-                primaryYAxis: NumericAxis(),
+              child: Stack(
+                children: [
+                  SfCartesianChart(
+                    series: _createSeries(),
+                    primaryXAxis: NumericAxis(),
+                    primaryYAxis: NumericAxis(
+                      maximum: 100,
+                      visibleMaximum: 100,
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 90,
+                    left: 42,
+                    right: 0,
+                    child: Container(
+                      height: 2,
+                      width: double.infinity,
+                      color: Colors.red,
+                    ),
+                  ),
+                  const Positioned(
+                    bottom: 90,
+                    left: 0,
+                    child: Text(
+                      'Q',
+                      style: TextStyle(
+                          color: Colors.red, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const Positioned(
+                    top: 76,
+                    left: 0,
+                    child: Text(
+                      '2Q',
+                      style: TextStyle(
+                          color: Colors.red, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Positioned(
+                    top: 85,
+                    left: 42,
+                    right: 0,
+                    child: Container(
+                      height: 2,
+                      width: double.infinity,
+                      color: Colors.red,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
